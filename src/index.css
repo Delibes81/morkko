@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+/* --- Design Tokens --- */
+:root {
+  /* Estructurales Compartidos */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-12: 96px;
+
+  --radius-none: 0px;
+  --radius-sm: 4px;
+  --radius-full: 9999px;
+
+  --header-height: 80px;
+
+  /* =========================================
+     Morokko Theme (Light Mode - Default)
+     ========================================= */
+  --bg-primary: #F9F9F6;  /* Off-White */
+  --bg-secondary: #FFFFFF;
+  --bg-neutral: #F3F4F6;
+  
+  --text-primary: #222222; /* Deep Charcoal */
+  --text-secondary: #555555;
+  --text-inverse: #FFFFFF;
+
+  --accent-color: #A3B19B; /* Muted Sage Green / Terracotta feel */
+  --border-color: #E5E7EB;
+
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  
+  --item-radius: var(--radius-sm);
+  --btn-radius: var(--radius-full);
+}
+
+/* =========================================
+   Guster Theme (Dark Mode)
+   ========================================= */
+[data-theme='dark'] {
+  --bg-primary: #050505;  /* Void Grey / Black */
+  --bg-secondary: #111111;
+  --bg-neutral: #1A1A1A;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1AA;
+  --text-inverse: #000000;
+
+  --accent-color: #00E5FF; /* Electric Cyan */
+  --border-color: #27272A;
+
+  --font-heading: 'Space Grotesk', sans-serif;
+  
+  --shadow-sm: none;
+  --shadow-md: none;
+  --item-radius: var(--radius-none);
+  --btn-radius: var(--radius-none);
+}
+
+/* --- Base Styles --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.8s cubic-bezier(0.85, 0, 0.15, 1),
+              color 0.8s cubic-bezier(0.85, 0, 0.15, 1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+/* The Wipe Animations Z-Index base */
+.transition-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 50;
+}
