@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import { Instagram, Facebook, Twitter, ArrowRight } from 'lucide-react';
+import { Instagram, Facebook, Twitter } from 'lucide-react';
 
 const Footer = () => {
     const { theme } = useTheme();
@@ -29,20 +29,7 @@ const Footer = () => {
                         </p>
                     </div>
 
-                    <div className="footer-newsletter">
-                        <h3>Únete a nosotros</h3>
-                        <p>Recibe noticias, accesos anticipados y un 10% de descuento en tu primer pedido.</p>
-                        <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
-                            <input
-                                type="email"
-                                placeholder="Tu correo electrónico"
-                                className={`newsletter-input ${isDark ? 'dark-input' : 'light-input'}`}
-                            />
-                            <button type="submit" className={`newsletter-btn ${isDark ? 'dark-btn' : 'light-btn'}`}>
-                                <ArrowRight size={20} />
-                            </button>
-                        </form>
-                    </div>
+
                 </div>
 
                 <div className="footer-links-grid">
@@ -136,61 +123,6 @@ const Footer = () => {
                     max-width: 400px;
                     line-height: 1.5;
                 }
-                .footer-newsletter {
-                    flex: 1;
-                    min-width: 300px;
-                }
-                .footer-newsletter h3 {
-                    margin-bottom: var(--space-1);
-                    font-size: 1.2rem;
-                }
-                .footer-newsletter p {
-                    opacity: 0.8;
-                    margin-bottom: var(--space-2);
-                    font-size: 0.9rem;
-                }
-                .newsletter-form {
-                    display: flex;
-                    position: relative;
-                    max-width: 400px;
-                }
-                .newsletter-input {
-                    flex: 1;
-                    padding: var(--space-2);
-                    padding-right: 50px;
-                    border: 1px solid;
-                    background: transparent;
-                    outline: none;
-                    transition: border-color 0.3s;
-                }
-                .light-input {
-                    border-color: rgba(0,0,0,0.2);
-                    color: #222;
-                }
-                .dark-input {
-                    border-color: rgba(255,255,255,0.2);
-                    color: #fff;
-                }
-                .light-input:focus { border-color: #222; }
-                .dark-input:focus { border-color: #fff; }
-                
-                .newsletter-btn {
-                    position: absolute;
-                    right: 0;
-                    top: 0;
-                    bottom: 0;
-                    width: 50px;
-                    background: transparent;
-                    border: none;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: opacity 0.3s;
-                }
-                .light-btn { color: #222; }
-                .dark-btn { color: #fff; }
-                .newsletter-btn:hover { opacity: 0.7; }
 
                 .footer-links-grid {
                     display: grid;
