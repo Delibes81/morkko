@@ -122,6 +122,15 @@ const Header = () => {
           align-items: center;
           justify-content: center;
         }
+
+        @media (max-width: 768px) {
+          .header-nav {
+            gap: var(--space-2);
+          }
+          .header-logo {
+            display: none;
+          }
+        }
       `}</style>
     </header>
   );
