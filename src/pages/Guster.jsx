@@ -1,14 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
-
-const GUSTER_PRODUCTS = [
-    { id: 'g1', name: 'Catrina Neón', brand: 'Guster', price: 65, form: 'Oversize Fit' },
-    { id: 'g2', name: 'Calavera Urbana', brand: 'Guster', price: 60, form: 'Boxy Fit' },
-    { id: 'g3', name: 'Santa Muerte Acid', brand: 'Guster', price: 70, form: 'Oversize Fit' },
-    { id: 'g4', name: 'Esqueleto Minimal', brand: 'Guster', price: 55, form: 'Regular Fit' },
-];
+import { supabase } from '../lib/supabase';
 
 // Variante de la página: The Ink Eclipse (Círculo negro expansivo + Reveal cascada y zoom down)
 const eclipseVariants = {
@@ -47,9 +41,30 @@ const itemVariants = {
 const Guster = () => {
     const { addToCart } = useCart();
     const { setSpecificTheme } = useTheme();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setSpecificTheme('dark');
+        
+        const fetchProducts = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('productos')
+                    .select('*')
+                    .eq('marca', 'guster')
+                    .order('created_at', { ascending: false });
+                    
+                if (error) throw error;
+                setProducts(data || []);
+            } catch (error) {
+                console.error('Error fetching Guster products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
     }, [setSpecificTheme]);
 
     return (
@@ -67,28 +82,51 @@ const Guster = () => {
                 </motion.div>
 
                 <motion.div className="product-grid" variants={itemVariants}>
-                    {GUSTER_PRODUCTS.map(product => (
-                        <motion.div key={product.id} className="product-card guster-card" variants={itemVariants}>
-                            <div className="card-image-wrapper guster-image-wrapper">
-                                <div className="image-placeholder bg-dark">
-                                    <span className="text-neon">Dark Contrast</span>
+                    {loading ? (
+                        <p style={{ textAlign: 'center', gridColumn: '1 / -1', opacity: 0.5, padding: 'var(--space-6)' }}>Entrando al territorio...</p>
+                    ) : products.length === 0 ? (
+                        <p style={{ textAlign: 'center', gridColumn: '1 / -1', opacity: 0.5, padding: 'var(--space-6)' }}>El territorio Guster aún no tiene diseños disponibles.</p>
+                    ) : (
+                        products.map((product) => {
+                            let coverImg = product.imagen_url;
+                            try {
+                              const parsed = JSON.parse(product.imagen_url);
+                              if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+                            } catch (e) {}
+
+                            return (
+                            <motion.div key={product.id} className="product-card guster-card" variants={itemVariants}>
+                                <div className="card-image-wrapper guster-image-wrapper">
+                                    {coverImg ? (
+                                        <img src={coverImg} alt={product.nombre} className="product-real-img" />
+                                    ) : (
+                                        <div className="image-placeholder bg-dark">
+                                            <span className="text-neon">Dark Contrast</span>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="card-info guster-info">
-                                <div>
-                                    <h3 className="product-name">{product.name}</h3>
-                                    <p className="product-form">{product.form}</p>
+                                <div className="card-info guster-info">
+                                    <div>
+                                        <h3 className="product-name">{product.nombre}</h3>
+                                        <p className="product-form">{product.descripcion?.substring(0, 30)}</p>
+                                    </div>
+                                    <span className="product-price text-neon">${product.precio}</span>
                                 </div>
-                                <span className="product-price text-neon">${product.price}</span>
-                            </div>
-                            <button
-                                className="add-to-cart-btn btn-guster-add"
-                                onClick={() => addToCart(product)}
-                            >
-                                Sumar a mi estilo
-                            </button>
-                        </motion.div>
-                    ))}
+                                <button
+                                    className="add-to-cart-btn btn-guster-add"
+                                    onClick={() => addToCart({
+                                        id: product.id,
+                                        name: product.nombre,
+                                        price: product.precio,
+                                        image: coverImg,
+                                        brand: product.marca
+                                    })}
+                                >
+                                    Sumar a mi estilo
+                                </button>
+                            </motion.div>
+                        )})
+                    )}
                 </motion.div>
             </div>
 
@@ -127,7 +165,33 @@ const Guster = () => {
         }
         .guster-image-wrapper {
           border-radius: var(--item-radius);
+          aspect-ratio: 3/4;
+          overflow: hidden;
+          background-color: #1A1A1A;
         }
+        
+        .image-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.5s ease;
+        }
+        
+        .product-real-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+          filter: grayscale(20%) contrast(1.1); /* To fit the dark theme vibe */
+        }
+        
+        .guster-card:hover .image-placeholder,
+        .guster-card:hover .product-real-img {
+          transform: scale(1.05);
+        }
+        
         .bg-dark { background-color: #1A1A1A; }
         .text-neon { color: var(--accent-color); font-weight: 600; }
         

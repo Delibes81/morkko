@@ -1,14 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
-
-const MOROKKO_PRODUCTS = [
-    { id: 'm1', name: 'Camisa Lino Amalfi', brand: 'Morokko', price: 125, color: 'Blanco' },
-    { id: 'm2', name: 'Oversize Algodón', brand: 'Morokko', price: 95, color: 'Beige' },
-    { id: 'm3', name: 'Oxford Clásica', brand: 'Morokko', price: 110, color: 'Celeste' },
-    { id: 'm4', name: 'Polo Knit Verano', brand: 'Morokko', price: 85, color: 'Arena' },
-];
+import { supabase } from '../lib/supabase';
 
 // Variante de la página: The Canvas Dawn (Barrido desde abajo + subida escalada)
 const dawnVariants = {
@@ -48,9 +42,30 @@ const itemVariants = {
 const Morokko = () => {
     const { addToCart } = useCart();
     const { setSpecificTheme } = useTheme();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setSpecificTheme('light');
+        
+        const fetchProducts = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('productos')
+                    .select('*')
+                    .eq('marca', 'morokko')
+                    .order('created_at', { ascending: false });
+                    
+                if (error) throw error;
+                setProducts(data || []);
+            } catch (error) {
+                console.error('Error fetching Morokko products:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
     }, [setSpecificTheme]);
 
     return (
@@ -68,29 +83,51 @@ const Morokko = () => {
                 </motion.div>
 
                 <motion.div className="product-grid" variants={itemVariants}>
-                    {MOROKKO_PRODUCTS.map(product => (
-                        <motion.div key={product.id} className="product-card morokko-card" variants={itemVariants}>
-                            <div className="card-image-wrapper">
-                                {/* Placeholders for actual high-end photography */}
-                                <div className="image-placeholder bg-light">
-                                    <span className="text-light">Luz Natural</span>
+                    {loading ? (
+                        <p style={{ textAlign: 'center', gridColumn: '1 / -1', opacity: 0.5, padding: 'var(--space-6)' }}>Cargando colección...</p>
+                    ) : products.length === 0 ? (
+                        <p style={{ textAlign: 'center', gridColumn: '1 / -1', opacity: 0.5, padding: 'var(--space-6)' }}>Aún no hay prendas en la colección.</p>
+                    ) : (
+                        products.map((product) => {
+                            let coverImg = product.imagen_url;
+                            try {
+                              const parsed = JSON.parse(product.imagen_url);
+                              if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+                            } catch (e) {}
+
+                            return (
+                            <motion.div key={product.id} className="product-card morokko-card" variants={itemVariants}>
+                                <div className="card-image-wrapper">
+                                    {coverImg ? (
+                                        <img src={coverImg} alt={product.nombre} className="product-real-img" />
+                                    ) : (
+                                        <div className="image-placeholder bg-light">
+                                            <span className="text-light">Luz Natural</span>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="card-info">
-                                <div>
-                                    <h3 className="product-name">{product.name}</h3>
-                                    <p className="product-color">{product.color}</p>
+                                <div className="card-info">
+                                    <div>
+                                        <h3 className="product-name">{product.nombre}</h3>
+                                        <p className="product-color">{product.descripcion?.substring(0, 30)}</p>
+                                    </div>
+                                    <span className="product-price">${product.precio}</span>
                                 </div>
-                                <span className="product-price">${product.price}</span>
-                            </div>
-                            <button
-                                className="add-to-cart-btn btn-morokko-add"
-                                onClick={() => addToCart(product)}
-                            >
-                                Añadir al carrito
-                            </button>
-                        </motion.div>
-                    ))}
+                                <button
+                                    className="add-to-cart-btn btn-morokko-add"
+                                    onClick={() => addToCart({
+                                      id: product.id,
+                                      name: product.nombre,
+                                      price: product.precio,
+                                      image: coverImg,
+                                      brand: product.marca
+                                    })}
+                                >
+                                    Añadir al carrito
+                                </button>
+                            </motion.div>
+                        )})
+                    )}
                 </motion.div>
             </div>
 
@@ -144,7 +181,15 @@ const Morokko = () => {
         .bg-light { background-color: #EFEFE9; }
         .text-light { color: #A3B19B; font-weight: 500; letter-spacing: 1px; }
         
-        .product-card:hover .image-placeholder {
+        .product-real-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+        }
+        
+        .product-card:hover .image-placeholder,
+        .product-card:hover .product-real-img {
           transform: scale(1.05);
         }
         .card-info {

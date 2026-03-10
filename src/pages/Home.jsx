@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { supabase } from '../lib/supabase';
 
 const Home = () => {
   const [hoveredSide, setHoveredSide] = useState(null);
+  const [featuredProducts, setFeaturedProducts] = useState({ morokko: [], guster: [] });
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  
   const navigate = useNavigate();
   const { setSpecificTheme } = useTheme();
 
@@ -18,6 +22,40 @@ const Home = () => {
     setSpecificTheme(theme);
     navigate(path);
   };
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      setLoadingProducts(true);
+      try {
+        // Fetch 2 newest Morokko products
+        const { data: morokkoData } = await supabase
+          .from('productos')
+          .select('*')
+          .eq('marca', 'morokko')
+          .order('created_at', { ascending: false })
+          .limit(2);
+          
+        // Fetch 2 newest Guster products
+        const { data: gusterData } = await supabase
+          .from('productos')
+          .select('*')
+          .eq('marca', 'guster')
+          .order('created_at', { ascending: false })
+          .limit(2);
+          
+        setFeaturedProducts({
+          morokko: morokkoData || [],
+          guster: gusterData || []
+        });
+      } catch (err) {
+        console.error("Error fetching featured products", err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchFeatured();
+  }, []);
 
   return (
     <motion.div
@@ -84,25 +122,58 @@ const Home = () => {
           <p className="section-subtitle">Lo mejor de ambos mundos</p>
 
           <div className="products-grid">
-            {/* Placeholder Products */}
-            {[1, 2].map((item) => (
-              <div key={`m-${item}`} className="product-card">
-                <div className="product-image-placeholder morokko-placeholder">
-                  <span>Morokko Item {item}</span>
-                </div>
-                <h3>Playera Lino Básica</h3>
-                <p>$450 MXN</p>
-              </div>
-            ))}
-            {[1, 2].map((item) => (
-              <div key={`g-${item}`} className="product-card dark-card">
-                <div className="product-image-placeholder guster-placeholder">
-                  <span>Guster Item {item}</span>
-                </div>
-                <h3>Sudadera Catrina</h3>
-                <p>$850 MXN</p>
-              </div>
-            ))}
+            {loadingProducts ? (
+              <p style={{ textAlign: 'center', gridColumn: '1 / -1', opacity: 0.5 }}>Cargando contrastes...</p>
+            ) : (
+              <>
+                {/* Dynamically render featured products from Supabase */}
+                {featuredProducts.morokko.map((product) => {
+                  let coverImg = product.imagen_url;
+                  try {
+                    const parsed = JSON.parse(product.imagen_url);
+                    if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+                  } catch (e) {}
+
+                  return (
+                  <div key={product.id} className="product-card">
+                    {coverImg ? (
+                      <div className="product-image-container">
+                        <img src={coverImg} alt={product.nombre} className="dynamic-product-img" />
+                      </div>
+                    ) : (
+                      <div className="product-image-placeholder morokko-placeholder">
+                        <span>{product.nombre}</span>
+                      </div>
+                    )}
+                    <h3>{product.nombre}</h3>
+                    <p>${product.precio} MXN</p>
+                  </div>
+                )})}
+
+                {featuredProducts.guster.map((product) => {
+                  let coverImg = product.imagen_url;
+                  try {
+                    const parsed = JSON.parse(product.imagen_url);
+                    if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+                  } catch (e) {}
+                  
+                  return (
+                  <div key={product.id} className="product-card dark-card">
+                    {coverImg ? (
+                      <div className="product-image-container guster-image-border">
+                        <img src={coverImg} alt={product.nombre} className="dynamic-product-img" />
+                      </div>
+                    ) : (
+                      <div className="product-image-placeholder guster-placeholder">
+                        <span>{product.nombre}</span>
+                      </div>
+                    )}
+                    <h3>{product.nombre}</h3>
+                    <p>${product.precio} MXN</p>
+                  </div>
+                )})}
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -269,7 +340,37 @@ const Home = () => {
             font-size: 0.9rem;
             opacity: 0.8;
             border-radius: var(--radius-md);
+            overflow: hidden;
         }
+
+        .product-image-container {
+            width: 100%;
+            aspect-ratio: 3/4;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: #EAEAE4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .guster-image-border {
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: var(--radius-none);
+            background-color: #222;
+        }
+
+        .dynamic-product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+        
+        .product-card:hover .dynamic-product-img {
+            transform: scale(1.05);
+        }
+
         .morokko-placeholder {
             background-color: #EAEAE4;
             color: #555;
