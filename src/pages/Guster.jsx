@@ -164,12 +164,37 @@ const Guster = () => {
           font-size: 1.1rem;
           color: var(--text-secondary);
         }
+        .product-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: var(--space-4);
+        }
+
+        @media (max-width: 600px) {
+          .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-2);
+          }
+          .product-name {
+            font-size: 0.95rem;
+          }
+          .product-price {
+            font-size: 0.95rem;
+          }
+          .btn-guster-add {
+            font-size: 0.7rem;
+            padding: var(--space-1);
+          }
+        }
+
         .guster-card {
           border-radius: var(--item-radius);
           background-color: var(--bg-secondary);
           padding: var(--space-2);
           border: 1px solid var(--border-color);
           transition: border-color 0.3s;
+          display: flex;
+          flex-direction: column;
         }
         .guster-card:hover {
           border-color: var(--accent-color);
