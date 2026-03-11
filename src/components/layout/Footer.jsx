@@ -8,7 +8,7 @@ const Footer = () => {
     const isDark = theme === 'dark';
 
     const footerStyle = {
-        backgroundColor: isDark ? '#050505' : '#F9F9F6',
+        backgroundColor: isDark ? '#050505' : '#FFFFFF',
         color: isDark ? '#FFFFFF' : '#222222',
         borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
         transition: 'background-color 0.8s, color 0.8s, border-color 0.8s'

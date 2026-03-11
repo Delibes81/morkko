@@ -373,6 +373,19 @@ const Home = () => {
             text-align: left;
         }
 
+        @media (max-width: 600px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--space-2);
+            }
+            .product-card h3 {
+                font-size: 0.95rem;
+            }
+            .product-card p {
+                font-size: 0.85rem;
+            }
+        }
+
         .product-card {
             display: flex;
             flex-direction: column;

@@ -167,6 +167,19 @@ const Morokko = () => {
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: var(--space-4);
         }
+
+        @media (max-width: 600px) {
+          .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-2);
+          }
+          .product-name {
+            font-size: 0.95rem;
+          }
+          .product-price {
+            font-size: 0.95rem;
+          }
+        }
         .product-card {
           display: flex;
           flex-direction: column;
