@@ -1,12 +1,31 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-    const [cartItems, setCartItems] = useState([]);
+    // Initialize cart from localStorage if available
+    const [cartItems, setCartItems] = useState(() => {
+        try {
+            const savedCart = localStorage.getItem('morkko_cart');
+            return savedCart ? JSON.parse(savedCart) : [];
+        } catch (error) {
+            console.error('Error loading cart from localStorage', error);
+            return [];
+        }
+    });
+    
     const [isCartOpen, setIsCartOpen] = useState(false);
+
+    // Sync cart changes to localStorage
+    useEffect(() => {
+        try {
+            localStorage.setItem('morkko_cart', JSON.stringify(cartItems));
+        } catch (error) {
+            console.error('Error saving cart to localStorage', error);
+        }
+    }, [cartItems]);
 
     const addToCart = (product) => {
         setCartItems(prev => {

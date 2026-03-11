@@ -12,7 +12,7 @@ const Header = () => {
   const isDark = theme === 'dark';
 
   const headerStyle = {
-    background: isDark ? 'rgba(5, 5, 5, 0.7)' : 'rgba(249, 249, 246, 0.7)',
+    background: isDark ? 'rgba(5, 5, 5, 0.7)' : 'rgba(255, 255, 255, 0.7)',
     backdropFilter: 'blur(10px)',
     borderBottom: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
     color: isDark ? '#FFFFFF' : '#222222',

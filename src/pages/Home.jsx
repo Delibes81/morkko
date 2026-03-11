@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 
 const Home = () => {
   const [hoveredSide, setHoveredSide] = useState(null);
   const [featuredProducts, setFeaturedProducts] = useState({ morokko: [], guster: [] });
+  const [displayIndices, setDisplayIndices] = useState({ morokko: 0, guster: 0 });
   const [loadingProducts, setLoadingProducts] = useState(true);
   
   const navigate = useNavigate();
@@ -27,21 +28,21 @@ const Home = () => {
     const fetchFeatured = async () => {
       setLoadingProducts(true);
       try {
-        // Fetch 2 newest Morokko products
+        // Fetch 10 newest Morokko products for rotation
         const { data: morokkoData } = await supabase
           .from('productos')
           .select('*')
           .eq('marca', 'morokko')
           .order('created_at', { ascending: false })
-          .limit(2);
+          .limit(10);
           
-        // Fetch 2 newest Guster products
+        // Fetch 10 newest Guster products for rotation
         const { data: gusterData } = await supabase
           .from('productos')
           .select('*')
           .eq('marca', 'guster')
           .order('created_at', { ascending: false })
-          .limit(2);
+          .limit(10);
           
         setFeaturedProducts({
           morokko: morokkoData || [],
@@ -56,6 +57,40 @@ const Home = () => {
 
     fetchFeatured();
   }, []);
+
+  // Set up interval for rotating displayed products every 5 seconds
+  useEffect(() => {
+    if (loadingProducts) return;
+
+    const intervalId = setInterval(() => {
+      setDisplayIndices(prev => {
+        const mMax = Math.max(0, featuredProducts.morokko.length - 2);
+        const gMax = Math.max(0, featuredProducts.guster.length - 2);
+
+        // Advance by 2 if we have enough items, otherwise wrap around or stay at 0
+        let nextM = prev.morokko + 2;
+        if (nextM > mMax) nextM = 0;
+
+        let nextG = prev.guster + 2;
+        if (nextG > gMax) nextG = 0;
+
+        return { morokko: nextM, guster: nextG };
+      });
+    }, 5000); // 5 seconds rotation
+
+    return () => clearInterval(intervalId);
+  }, [loadingProducts, featuredProducts]);
+
+  // Derived state to get the currently visible 2 items per brand
+  const visibleMorokko = featuredProducts.morokko.slice(
+      displayIndices.morokko, 
+      displayIndices.morokko + 2
+  );
+  
+  const visibleGuster = featuredProducts.guster.slice(
+      displayIndices.guster, 
+      displayIndices.guster + 2
+  );
 
   return (
     <motion.div
@@ -127,51 +162,69 @@ const Home = () => {
             ) : (
               <>
                 {/* Dynamically render featured products from Supabase */}
-                {featuredProducts.morokko.map((product) => {
-                  let coverImg = product.imagen_url;
-                  try {
-                    const parsed = JSON.parse(product.imagen_url);
-                    if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
-                  } catch (e) {}
+                <AnimatePresence mode="popLayout">
+                  {visibleMorokko.map((product) => {
+                    let coverImg = product.imagen_url;
+                    try {
+                      const parsed = JSON.parse(product.imagen_url);
+                      if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+                    } catch (e) {}
 
-                  return (
-                  <div key={product.id} className="product-card">
-                    {coverImg ? (
-                      <div className="product-image-container">
-                        <img src={coverImg} alt={product.nombre} className="dynamic-product-img" />
-                      </div>
-                    ) : (
-                      <div className="product-image-placeholder morokko-placeholder">
-                        <span>{product.nombre}</span>
-                      </div>
-                    )}
-                    <h3>{product.nombre}</h3>
-                    <p>${product.precio} MXN</p>
-                  </div>
-                )})}
+                    return (
+                    <motion.div
+                      key={`morokko-${product.id}`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Link to={`/producto/${product.id}`} className="product-card" style={{textDecoration: 'none', color: 'inherit', display: 'block', height: '100%'}}>
+                        {coverImg ? (
+                          <div className="product-image-container">
+                            <img src={coverImg} alt={product.nombre} className="dynamic-product-img" />
+                          </div>
+                        ) : (
+                          <div className="product-image-placeholder morokko-placeholder">
+                            <span>{product.nombre}</span>
+                          </div>
+                        )}
+                        <h3>{product.nombre}</h3>
+                        <p>${product.precio} MXN</p>
+                      </Link>
+                    </motion.div>
+                  )})}
 
-                {featuredProducts.guster.map((product) => {
-                  let coverImg = product.imagen_url;
-                  try {
-                    const parsed = JSON.parse(product.imagen_url);
-                    if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
-                  } catch (e) {}
-                  
-                  return (
-                  <div key={product.id} className="product-card dark-card">
-                    {coverImg ? (
-                      <div className="product-image-container guster-image-border">
-                        <img src={coverImg} alt={product.nombre} className="dynamic-product-img" />
-                      </div>
-                    ) : (
-                      <div className="product-image-placeholder guster-placeholder">
-                        <span>{product.nombre}</span>
-                      </div>
-                    )}
-                    <h3>{product.nombre}</h3>
-                    <p>${product.precio} MXN</p>
-                  </div>
-                )})}
+                  {visibleGuster.map((product) => {
+                    let coverImg = product.imagen_url;
+                    try {
+                      const parsed = JSON.parse(product.imagen_url);
+                      if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+                    } catch (e) {}
+                    
+                    return (
+                    <motion.div
+                      key={`guster-${product.id}`}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Link to={`/producto/${product.id}`} className="product-card dark-card" style={{textDecoration: 'none', color: 'inherit', display: 'block', height: '100%'}}>
+                        {coverImg ? (
+                          <div className="product-image-container guster-image-border">
+                            <img src={coverImg} alt={product.nombre} className="dynamic-product-img" />
+                          </div>
+                        ) : (
+                          <div className="product-image-placeholder guster-placeholder">
+                            <span>{product.nombre}</span>
+                          </div>
+                        )}
+                        <h3>{product.nombre}</h3>
+                        <p>${product.precio} MXN</p>
+                      </Link>
+                    </motion.div>
+                  )})}
+                </AnimatePresence>
               </>
             )}
           </div>
@@ -195,7 +248,7 @@ const Home = () => {
         .home-page {
           width: 100%;
           min-height: 100vh;
-          background-color: #F9F9F6; /* Color base */
+          background-color: #FFFFFF; /* Color base */
         }
         
         .home-split {
@@ -241,7 +294,7 @@ const Home = () => {
         }
 
         .morokko-side {
-          background-color: #F9F9F6;
+          background-color: #FFFFFF;
           color: #222222;
         }
 
@@ -344,11 +397,12 @@ const Home = () => {
         }
 
         .product-image-container {
+            position: relative;
             width: 100%;
             aspect-ratio: 3/4;
             border-radius: var(--radius-md);
             overflow: hidden;
-            background-color: #EAEAE4;
+            background-color: #FFFFFF;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -361,9 +415,11 @@ const Home = () => {
         }
 
         .dynamic-product-img {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transition: transform 0.8s ease;
         }
         
@@ -372,8 +428,9 @@ const Home = () => {
         }
 
         .morokko-placeholder {
-            background-color: #EAEAE4;
+            background-color: #FFFFFF;
             color: #555;
+            border: 1px solid rgba(0,0,0,0.1);
         }
         .guster-placeholder {
             background-color: #222;

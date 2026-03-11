@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 // Variante de la página: The Canvas Dawn (Barrido desde abajo + subida escalada)
 const dawnVariants = {
@@ -42,6 +43,7 @@ const itemVariants = {
 const Morokko = () => {
     const { addToCart } = useCart();
     const { setSpecificTheme } = useTheme();
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -96,7 +98,13 @@ const Morokko = () => {
                             } catch (e) {}
 
                             return (
-                            <motion.div key={product.id} className="product-card morokko-card" variants={itemVariants}>
+                            <motion.div 
+                                key={product.id} 
+                                className="product-card morokko-card" 
+                                variants={itemVariants}
+                                onClick={() => navigate(`/producto/${product.id}`)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="card-image-wrapper">
                                     {coverImg ? (
                                         <img src={coverImg} alt={product.nombre} className="product-real-img" />
@@ -115,13 +123,16 @@ const Morokko = () => {
                                 </div>
                                 <button
                                     className="add-to-cart-btn btn-morokko-add"
-                                    onClick={() => addToCart({
-                                      id: product.id,
-                                      name: product.nombre,
-                                      price: product.precio,
-                                      image: coverImg,
-                                      brand: product.marca
-                                    })}
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevenir navegacion
+                                      addToCart({
+                                        id: product.id,
+                                        name: product.nombre,
+                                        price: product.precio,
+                                        image: coverImg,
+                                        brand: product.marca
+                                      });
+                                    }}
                                 >
                                     Añadir al carrito
                                 </button>
@@ -165,6 +176,8 @@ const Morokko = () => {
           border-radius: var(--item-radius);
         }
         .card-image-wrapper {
+          position: relative;
+          width: 100%;
           aspect-ratio: 3/4;
           border-radius: var(--item-radius);
           overflow: hidden;
@@ -178,13 +191,15 @@ const Morokko = () => {
           justify-content: center;
           transition: transform 0.5s ease;
         }
-        .bg-light { background-color: #EFEFE9; }
+        .bg-light { background-color: #FFFFFF; border: 1px solid rgba(0,0,0,0.05); }
         .text-light { color: #A3B19B; font-weight: 500; letter-spacing: 1px; }
         
         .product-real-img {
+          position: absolute;
+          inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           transition: transform 0.5s ease;
         }
         

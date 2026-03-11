@@ -20,8 +20,8 @@
   /* =========================================
      Morokko Theme (Light Mode - Default)
      ========================================= */
-  --bg-primary: #F9F9F6;  /* Off-White */
-  --bg-secondary: #FFFFFF;
+  --bg-primary: #FFFFFF;  /* Pure White */
+  --bg-secondary: #FAFAFA;
   --bg-neutral: #F3F4F6;
   
   --text-primary: #222222; /* Deep Charcoal */

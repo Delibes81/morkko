@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 // Variante de la página: The Ink Eclipse (Círculo negro expansivo + Reveal cascada y zoom down)
 const eclipseVariants = {
@@ -41,6 +42,7 @@ const itemVariants = {
 const Guster = () => {
     const { addToCart } = useCart();
     const { setSpecificTheme } = useTheme();
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -95,7 +97,13 @@ const Guster = () => {
                             } catch (e) {}
 
                             return (
-                            <motion.div key={product.id} className="product-card guster-card" variants={itemVariants}>
+                            <motion.div 
+                                key={product.id} 
+                                className="product-card guster-card" 
+                                variants={itemVariants}
+                                onClick={() => navigate(`/producto/${product.id}`)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="card-image-wrapper guster-image-wrapper">
                                     {coverImg ? (
                                         <img src={coverImg} alt={product.nombre} className="product-real-img" />
@@ -114,13 +122,16 @@ const Guster = () => {
                                 </div>
                                 <button
                                     className="add-to-cart-btn btn-guster-add"
-                                    onClick={() => addToCart({
-                                        id: product.id,
-                                        name: product.nombre,
-                                        price: product.precio,
-                                        image: coverImg,
-                                        brand: product.marca
-                                    })}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevenir navegacion a detail
+                                        addToCart({
+                                            id: product.id,
+                                            name: product.nombre,
+                                            price: product.precio,
+                                            image: coverImg,
+                                            brand: product.marca
+                                        });
+                                    }}
                                 >
                                     Sumar a mi estilo
                                 </button>
@@ -164,6 +175,8 @@ const Guster = () => {
           border-color: var(--accent-color);
         }
         .guster-image-wrapper {
+          position: relative;
+          width: 100%;
           border-radius: var(--item-radius);
           aspect-ratio: 3/4;
           overflow: hidden;
@@ -180,9 +193,11 @@ const Guster = () => {
         }
         
         .product-real-img {
+          position: absolute;
+          inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
           transition: transform 0.5s ease;
           filter: grayscale(20%) contrast(1.1); /* To fit the dark theme vibe */
         }

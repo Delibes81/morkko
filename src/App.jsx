@@ -10,6 +10,7 @@ import Layout from './components/layout/Layout';
 import Home from './pages/Home';
 import Morokko from './pages/Morokko';
 import Guster from './pages/Guster';
+import ProductDetail from './pages/ProductDetail';
 import ProductosCRUD from './pages/admin/ProductosCRUD';
 import LoginAdmin from './pages/admin/LoginAdmin';
 import ProtectedRoute from './components/layout/ProtectedRoute';
@@ -25,6 +26,7 @@ const AnimatedRoutes = () => {
           <Route index element={<Home />} />
           <Route path="morokko" element={<Morokko />} />
           <Route path="guster" element={<Guster />} />
+          <Route path="producto/:id" element={<ProductDetail />} />
           <Route path="admin/login" element={<LoginAdmin />} />
           <Route 
             path="admin/productos" 
