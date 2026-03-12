@@ -10,6 +10,7 @@ const ProductosCRUD = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
+  const [activeTab, setActiveTab] = useState('morokko'); // New state for tabs
   
   // Form State
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const ProductosCRUD = () => {
 
   // Image Upload State (Array of objects: { id, preview, blob, originalSize, optimizedSize, existingUrl? })
   const [productImages, setProductImages] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const { setSpecificTheme } = useTheme();
   const { signOut } = useAuth();
@@ -61,7 +63,7 @@ const ProductosCRUD = () => {
         nombre: product.nombre || '',
         descripcion: product.descripcion || '',
         precio: product.precio || '',
-        marca: product.marca || 'morokko',
+        marca: product.marca || activeTab,
         imagen_url: product.imagen_url || ''
       });
       
@@ -91,7 +93,7 @@ const ProductosCRUD = () => {
         nombre: '',
         descripcion: '',
         precio: '',
-        marca: 'morokko',
+        marca: activeTab, // Automatically assign the active tab brand
         imagen_url: ''
       });
     }
@@ -159,8 +161,7 @@ const ProductosCRUD = () => {
     });
   };
 
-  const handleFileSelect = async (e) => {
-    const files = Array.from(e.target.files);
+  const processFiles = async (files) => {
     if (files.length === 0) return;
 
     setLoading(true);
@@ -187,8 +188,31 @@ const ProductosCRUD = () => {
       alert("Error optimizando alguna imagen.");
     } finally {
       setLoading(false);
-      e.target.value = ''; // Reset input to allow re-selecting same files
     }
+  };
+
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    await processFiles(files);
+    e.target.value = ''; // Reset input to allow re-selecting same files
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    await processFiles(files);
   };
 
   // Reordering & Deleting Functions
@@ -316,12 +340,28 @@ const ProductosCRUD = () => {
           </button>
           <button className="btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={20} />
-            <span>Nuevo Producto</span>
+            <span>Nuevo Producto {activeTab === 'morokko' ? 'Morokko' : 'Guster'}</span>
           </button>
           <button className="btn-danger" onClick={signOut} title="Cerrar Sesión">
             <LogOut size={20} />
           </button>
         </div>
+      </div>
+
+      {/* Brand Tabs */}
+      <div className="admin-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'morokko' ? 'active tab-morokko' : ''}`}
+          onClick={() => setActiveTab('morokko')}
+        >
+          Morokko
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'guster' ? 'active tab-guster' : ''}`}
+          onClick={() => setActiveTab('guster')}
+        >
+          Guster
+        </button>
       </div>
 
       <div className="table-container">
@@ -333,18 +373,17 @@ const ProductosCRUD = () => {
               <tr>
                 <th>Imagen</th>
                 <th>Nombre</th>
-                <th>Marca</th>
                 <th>Precio</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {productos.length === 0 ? (
+              {productos.filter(p => p.marca === activeTab).length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="empty-state">No hay productos registrados.</td>
+                  <td colSpan="4" className="empty-state">No hay productos en {activeTab}.</td>
                 </tr>
               ) : (
-                productos.map((product) => (
+                productos.filter(p => p.marca === activeTab).map((product) => (
                   <motion.tr 
                     key={product.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -371,11 +410,6 @@ const ProductosCRUD = () => {
                     <td className="td-name">
                       <strong>{product.nombre}</strong>
                       <span className="td-desc">{product.descripcion?.substring(0, 50)}...</span>
-                    </td>
-                    <td>
-                      <span className={`badge badge-${product.marca}`}>
-                        {product.marca.toUpperCase()}
-                      </span>
                     </td>
                     <td className="td-price">${product.precio} MXN</td>
                     <td>
@@ -431,7 +465,7 @@ const ProductosCRUD = () => {
                 </div>
 
                 <div className="form-row">
-                  <div className="form-group">
+                  <div className="form-group wide-group">
                     <label htmlFor="precio">Precio (MXN)</label>
                     <input 
                       type="number" 
@@ -444,13 +478,7 @@ const ProductosCRUD = () => {
                       placeholder="850.00"
                     />
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="marca">Marca</label>
-                    <select id="marca" name="marca" value={formData.marca} onChange={handleInputChange}>
-                      <option value="morokko">Morokko</option>
-                      <option value="guster">Guster</option>
-                    </select>
-                  </div>
+                  {/* Marca select is removed, assigned implicitly by activeTab */}
                 </div>
 
                 <div className="form-group">
@@ -459,21 +487,24 @@ const ProductosCRUD = () => {
                   <div className="image-upload-container">
                     
                     {/* Upload Controls */}
-                    <div className="upload-controls full-width-controls">
+                    <div 
+                      className={`upload-controls full-width-controls ${isDragging ? 'dragging' : ''}`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                    >
                       <p className="upload-instructions">
-                        Sube varias fotos de alta calidad (PNG, JPG). Las optimizamos iterativamente a <strong>.webp</strong> sin perder calidad. Además, puedes arrastrar con las flechas si te equivocaste de orden. <b>La primera imagen siempre será la Portada.</b>
+                        Arrastra tus imágenes aquí o haz clic en "Seleccionar Archivos" para subir fotos (PNG, JPG o WebP). 
+                        Las optimizamos recursivamente a <strong>.webp</strong> sin perder calidad.
                       </p>
                       
                       <div className="file-input-wrapper">
-                        <button type="button" className="btn-upload-trigger">
-                          <Upload size={16} /> Seleccionar Archivos
-                        </button>
                         <input 
                           type="file" 
                           multiple
                           accept="image/png, image/jpeg, image/jpg, image/webp" 
                           onChange={handleFileSelect}
-                          className="hidden-file-input"
+                          style={{ color: '#fff' }}
                         />
                       </div>
                     </div>
@@ -591,6 +622,29 @@ const ProductosCRUD = () => {
           background: rgba(255,255,255,0.1);
         }
 
+        .upload-controls {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: var(--space-3);
+          background: rgba(255, 255, 255, 0.02);
+          padding: var(--space-3);
+          border-radius: var(--radius-sm);
+          border: 2px dashed transparent;
+          transition: all 0.3s ease;
+        }
+
+        .upload-controls.dragging {
+          border-color: #00E5FF;
+          background: rgba(0, 229, 255, 0.1);
+        }
+
+        .upload-instructions {
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.6);
+          line-height: 1.5;
+        }
+
         .spinning {
           animation: spin 1s linear infinite;
         }
@@ -646,6 +700,58 @@ const ProductosCRUD = () => {
           background: #ff4757;
           color: #fff;
           box-shadow: 0 0 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .admin-tabs {
+          display: flex;
+          max-width: 1200px;
+          margin: 0 auto var(--space-4);
+          gap: var(--space-2);
+          border-bottom: 1px solid rgba(255,255,255,0.1);
+          padding-bottom: 0;
+        }
+
+        .tab-btn {
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.5);
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.1rem;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          padding: var(--space-2) var(--space-4);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          position: relative;
+        }
+
+        .tab-btn:hover {
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .tab-btn::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: transparent;
+          transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+          color: #fff;
+          font-weight: 600;
+        }
+        
+        .tab-btn.active.tab-morokko::after {
+          background: #fff;
+        }
+        
+        .tab-btn.active.tab-guster::after {
+          background: #00E5FF;
+          box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
         }
 
         .table-container {
@@ -816,11 +922,15 @@ const ProductosCRUD = () => {
 
         .form-row {
           display: flex;
-          gap: var(--space-3);
+          gap: var(--space-4);
         }
 
-        .form-row .form-group {
+        .form-row > div {
           flex: 1;
+        }
+        
+        .wide-group {
+          flex: 1 1 100%;
         }
 
         .form-group {

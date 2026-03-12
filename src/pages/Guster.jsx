@@ -13,11 +13,12 @@ const eclipseVariants = {
     },
     animate: {
         clipPath: 'circle(150% at 50% 50%)',
+        backgroundColor: '#FFFFFF', // animates to white
         transition: {
-            duration: 1.2,
+            duration: 0.6, // Sped up the main circle reveal
             ease: [0.85, 0, 0.15, 1],
             when: 'beforeChildren',
-            staggerChildren: 0.1,
+            staggerChildren: 0.05, // Sped up the staggering of children
         }
     },
     exit: {
@@ -35,7 +36,7 @@ const itemVariants = {
         opacity: 1,
         y: 0,
         scale: 1,
-        transition: { duration: 0.8, ease: [0.85, 0, 0.15, 1] }
+        transition: { duration: 0.4, ease: [0.85, 0, 0.15, 1] } // Sped up individual item load
     }
 };
 
@@ -47,7 +48,7 @@ const Guster = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setSpecificTheme('dark');
+        setSpecificTheme('light');
         
         const fetchProducts = async () => {
             try {
@@ -79,7 +80,7 @@ const Guster = () => {
         >
             <div className="container" style={{ padding: 'var(--space-8) var(--space-4)' }}>
                 <motion.div variants={itemVariants} className="page-header guster-header">
-                    <h1 className="guster-title">Territorio Guster</h1>
+                    <img src="/guster_logo.png" alt="Guster" className="guster-page-logo" />
                     <p className="guster-subtitle">Cultura urbana, actitud implacable, oscuridad absoluta.</p>
                 </motion.div>
 
@@ -133,7 +134,7 @@ const Guster = () => {
                                         });
                                     }}
                                 >
-                                    Sumar a mi estilo
+                                    Agregar a carrito
                                 </button>
                             </motion.div>
                         )})
@@ -143,7 +144,7 @@ const Guster = () => {
 
             <style>{`
         .guster-page {
-          background-color: var(--bg-primary);
+          background-color: transparent; /* Animation handles the background initially */
           color: var(--text-primary);
           min-height: calc(100vh - var(--header-height));
         }
@@ -153,16 +154,17 @@ const Guster = () => {
           max-width: 600px;
           margin-inline: auto;
         }
-        .guster-title {
-          font-size: 3rem;
+        .guster-page-logo {
+          height: 10rem;
+          width: auto;
+          object-fit: contain;
           margin-bottom: var(--space-2);
-          text-transform: uppercase;
-          letter-spacing: 2px;
-          color: var(--accent-color);
+          display: block;
+          margin-inline: auto;
         }
         .guster-subtitle {
           font-size: 1.1rem;
-          color: var(--text-secondary);
+          color: #555555;
         }
         .product-grid {
           display: grid;
@@ -189,15 +191,15 @@ const Guster = () => {
 
         .guster-card {
           border-radius: var(--item-radius);
-          background-color: var(--bg-secondary);
+          background-color: transparent;
           padding: var(--space-2);
-          border: 1px solid var(--border-color);
-          transition: border-color 0.3s;
+          border: none;
+          transition: transform 0.3s ease;
           display: flex;
           flex-direction: column;
         }
         .guster-card:hover {
-          border-color: var(--accent-color);
+          transform: translateY(-5px);
         }
         .guster-image-wrapper {
           position: relative;
@@ -205,7 +207,7 @@ const Guster = () => {
           border-radius: var(--item-radius);
           aspect-ratio: 3/4;
           overflow: hidden;
-          background-color: #1A1A1A;
+          background-color: transparent; /* Changed from #F0F0F0 to avoid stripes */
         }
         
         .image-placeholder {
@@ -222,9 +224,9 @@ const Guster = () => {
           inset: 0;
           width: 100%;
           height: 100%;
-          object-fit: contain;
+          object-fit: cover; /* Changed from contain to cover to eliminate empty space */
           transition: transform 0.5s ease;
-          filter: grayscale(20%) contrast(1.1); /* To fit the dark theme vibe */
+          /* Removed grayscale to look better on light bg */
         }
         
         .guster-card:hover .image-placeholder,
@@ -232,31 +234,34 @@ const Guster = () => {
           transform: scale(1.05);
         }
         
-        .bg-dark { background-color: #1A1A1A; }
-        .text-neon { color: var(--accent-color); font-weight: 600; }
+        .bg-dark { background-color: #f5f5f5; }
+        .text-neon { color: #222; font-weight: 600; }
         
         .guster-info {
           padding: var(--space-2) 0;
         }
         .product-form {
           font-size: 0.85rem;
-          color: var(--text-secondary);
+          color: #777777;
           margin-top: 4px;
         }
         
         .btn-guster-add {
           background-color: transparent;
-          border: 2px solid var(--border-color);
-          color: var(--text-primary);
+          border: 1px solid #EEEEEE;
+          color: #222222;
           border-radius: var(--btn-radius);
           text-transform: uppercase;
-          font-size: 0.8rem;
+          font-size: 0.95rem; /* Increased font size */
           letter-spacing: 1px;
+          margin-top: var(--space-3); /* Added more margin */
+          padding: var(--space-2) var(--space-3); /* Increased padding for a bigger button */
+          cursor: pointer;
         }
         .btn-guster-add:hover {
-          border-color: var(--accent-color);
-          background-color: rgba(0, 229, 255, 0.1);
-          box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+          border-color: #222222;
+          background-color: #F5F5F5;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
         }
       `}</style>
         </motion.div>

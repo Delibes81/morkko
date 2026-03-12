@@ -231,10 +231,10 @@ const ProductDetail = () => {
                 }
 
                 .theme-guster {
-                    --bg-color: #111111;
-                    --text-color: #ffffff;
-                    --accent-color: #00E5FF;
-                    --border-color: rgba(255,255,255,0.1);
+                    --bg-color: #FFFFFF;
+                    --text-color: #111111;
+                    --accent-color: #222222;
+                    --border-color: rgba(0,0,0,0.1);
                 }
 
                 .product-detail-wrapper {
@@ -456,7 +456,7 @@ const ProductDetail = () => {
                 }
 
                 .theme-morokko .add-to-bag-btn { color: #FFFFFF; }
-                .theme-guster .add-to-bag-btn { color: #111111; }
+                .theme-guster .add-to-bag-btn { color: #FFFFFF; background: #222222; }
 
                 .add-to-bag-btn:hover {
                     transform: translateY(-2px);
@@ -464,7 +464,8 @@ const ProductDetail = () => {
                 }
                 
                 .theme-guster .add-to-bag-btn:hover {
-                    box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
+                    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+                    background: #000000;
                 }
 
                 .add-to-bag-btn.added {
@@ -492,13 +493,13 @@ const ProductDetail = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: #111;
+                    background: #FFFFFF;
                 }
                 .loader-spinner {
                     width: 50px;
                     height: 50px;
-                    border: 3px solid rgba(255,255,255,0.1);
-                    border-top-color: #00E5FF;
+                    border: 3px solid rgba(0,0,0,0.1);
+                    border-top-color: #222222;
                     border-radius: 50%;
                     animation: spin 1s linear infinite;
                 }
@@ -510,8 +511,8 @@ const ProductDetail = () => {
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    background: #111;
-                    color: #fff;
+                    background: #FFFFFF;
+                    color: #111111;
                     gap: var(--space-4);
                 }
 

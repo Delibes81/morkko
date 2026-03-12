@@ -113,7 +113,7 @@ const Home = () => {
           transition={{ duration: 0.6, ease: [0.85, 0, 0.15, 1] }}
         >
           <div className="side-content">
-            <h1>Morokko</h1>
+            <img src="/morokko.png" alt="Morokko" className="morokko-logo-home" />
             <p>Lino, Algodón, Lifestyle.</p>
             <button
               className="btn btn-morokko"
@@ -137,7 +137,7 @@ const Home = () => {
           transition={{ duration: 0.6, ease: [0.85, 0, 0.15, 1] }}
         >
           <div className="side-content">
-            <h1>Guster</h1>
+            <img src="/guster_blancologo.png" alt="Guster" className="guster-logo-home" />
             <p>Urbano, Nocturno, Catrinas.</p>
             <button
               className="btn btn-guster"
@@ -303,6 +303,13 @@ const Home = () => {
           font-size: 4rem;
         }
 
+        .morokko-logo-home {
+          height: 18rem; /* Increased size significantly */
+          width: auto;
+          object-fit: contain;
+          margin-bottom: var(--space-2);
+        }
+
         .guster-side {
           background-color: #111111;
           color: #FFFFFF;
@@ -313,6 +320,13 @@ const Home = () => {
           font-size: 4rem;
           text-transform: uppercase;
           letter-spacing: 2px;
+        }
+
+        .guster-logo-home {
+          height: 18rem; /* Increased size significantly */
+          width: auto;
+          object-fit: contain;
+          margin-bottom: var(--space-2);
         }
 
         .btn {
@@ -336,7 +350,7 @@ const Home = () => {
           background-color: transparent;
           color: #FFFFFF;
           border: 2px solid #00E5FF;
-          border-radius: var(--radius-none);
+          border-radius: var(--radius-full);
           text-transform: uppercase;
           box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
         }
@@ -534,6 +548,9 @@ const Home = () => {
           }
           .morokko-side h1, .guster-side h1 {
             font-size: 2.5rem;
+          }
+          .guster-logo-home, .morokko-logo-home {
+            height: 9rem;
           }
           .section-title {
             font-size: 2rem;
