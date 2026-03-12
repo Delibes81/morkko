@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, RefreshCw, LogOut, Upload, Image as ImageIcon, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, RefreshCw, LogOut, Upload, Image as ImageIcon, ChevronLeft, ChevronRight, XCircle, Search } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +12,16 @@ const ProductosCRUD = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('morokko'); // New state for tabs
+  
+  // Search and Pagination State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Reset page to 1 when tab or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm]);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -27,10 +38,11 @@ const ProductosCRUD = () => {
 
   const { setSpecificTheme } = useTheme();
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Force a specific theme for the admin panel, maybe dark for premium feel
-    setSpecificTheme('dark');
+    // Force a specific theme for the admin panel, light mode for premium feel
+    setSpecificTheme('light');
     fetchProductos();
   }, [setSpecificTheme]);
 
@@ -332,18 +344,27 @@ const ProductosCRUD = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
+
+
       <div className="admin-header">
         <h1>Gestión de Productos</h1>
         <div className="admin-actions">
+          <div className="search-wrapper">
+            <Search size={18} className="search-icon" />
+            <input 
+              type="text" 
+              placeholder="Buscar..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
           <button className="btn-icon" onClick={fetchProductos} disabled={loading} title="Actualizar">
             <RefreshCw size={20} className={loading ? 'spinning' : ''} />
           </button>
           <button className="btn-primary" onClick={() => handleOpenModal()}>
             <Plus size={20} />
             <span>Nuevo Producto {activeTab === 'morokko' ? 'Morokko' : 'Guster'}</span>
-          </button>
-          <button className="btn-danger" onClick={signOut} title="Cerrar Sesión">
-            <LogOut size={20} />
           </button>
         </div>
       </div>
@@ -367,8 +388,24 @@ const ProductosCRUD = () => {
       <div className="table-container">
         {loading && productos.length === 0 ? (
           <div className="loading-state">Cargando productos...</div>
-        ) : (
-          <table className="products-table">
+        ) : (() => {
+          // Frontend Filtering and Pagination Logic
+          const filteredAndSearchedProducts = productos
+            .filter(p => p.marca === activeTab)
+            .filter(p => 
+              p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
+              (p.descripcion && p.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+
+          const totalPages = Math.ceil(filteredAndSearchedProducts.length / itemsPerPage) || 1;
+          const paginatedProducts = filteredAndSearchedProducts.slice(
+            (currentPage - 1) * itemsPerPage, 
+            currentPage * itemsPerPage
+          );
+
+          return (
+            <>
+              <table className="products-table">
             <thead>
               <tr>
                 <th>Imagen</th>
@@ -378,12 +415,14 @@ const ProductosCRUD = () => {
               </tr>
             </thead>
             <tbody>
-              {productos.filter(p => p.marca === activeTab).length === 0 ? (
+              {filteredAndSearchedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="empty-state">No hay productos en {activeTab}.</td>
+                  <td colSpan="4" className="empty-state">
+                    No se encontraron productos{searchTerm ? ` para "${searchTerm}"` : ''} en {activeTab}.
+                  </td>
                 </tr>
               ) : (
-                productos.filter(p => p.marca === activeTab).map((product) => (
+                paginatedProducts.map((product) => (
                   <motion.tr 
                     key={product.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -427,7 +466,30 @@ const ProductosCRUD = () => {
               )}
             </tbody>
           </table>
-        )}
+          
+          {/* Pagination Controls */}
+          {filteredAndSearchedProducts.length > itemsPerPage && (
+            <div className="admin-pagination">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="pagination-btn"
+              >
+                <ChevronLeft size={18} /> Anterior
+              </button>
+              <span className="pagination-info">Página {currentPage} de {totalPages}</span>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="pagination-btn"
+              >
+                Siguiente <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+          </>
+        )
+        })()}
       </div>
 
       {/* Modal */}
@@ -577,11 +639,13 @@ const ProductosCRUD = () => {
       <style>{`
         .admin-container {
           min-height: 100vh;
-          background-color: #111111;
-          color: #ffffff;
-          padding: calc(var(--header-height) + var(--space-4)) var(--space-4) var(--space-6);
-          font-family: 'Space Grotesk', sans-serif;
+          background-color: transparent;
+          color: var(--text-primary, #111827);
+          padding: 0;
+          font-family: var(--font-body, 'Space Grotesk', sans-serif);
         }
+
+
 
         .admin-header {
           max-width: 1200px;
@@ -589,25 +653,65 @@ const ProductosCRUD = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-          padding-bottom: var(--space-3);
+          border-bottom: 1px solid rgba(0,0,0,0.08);
+          padding-top: var(--space-6);
+          padding-bottom: var(--space-4);
         }
 
         .admin-header h1 {
+          font-family: var(--font-heading);
           font-size: 2rem;
-          font-weight: 400;
-          letter-spacing: 1px;
+          font-weight: 600;
+          letter-spacing: -0.5px;
+          color: #111827;
         }
 
         .admin-actions {
           display: flex;
-          gap: var(--space-2);
+          align-items: center;
+          gap: var(--space-3);
+        }
+
+        .admin-actions .search-wrapper {
+          display: flex;
+          align-items: center;
+          background: #F9FAFB;
+          border: 1px solid #D1D5DB;
+          border-radius: var(--radius-full);
+          padding: 6px 16px;
+          height: 40px;
+          width: 300px;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .admin-actions .search-wrapper:focus-within {
+          border-color: #111827;
+          box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
+        }
+
+        .admin-actions .search-wrapper .search-icon {
+          color: #6B7280;
+          flex-shrink: 0;
+          margin-right: 8px;
+        }
+
+        .admin-actions .search-wrapper input.search-input {
+          border: none !important;
+          background: transparent !important;
+          outline: none !important;
+          box-shadow: none !important;
+          width: 100%;
+          padding: 0;
+          margin: 0;
+          font-family: inherit;
+          font-size: 0.95rem;
+          color: #111827;
         }
 
         .btn-icon {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: #fff;
+          background: #FFFFFF;
+          border: 1px solid rgba(0,0,0,0.1);
+          color: #4B5563;
           width: 40px;
           height: 40px;
           border-radius: var(--radius-sm);
@@ -616,10 +720,12 @@ const ProductosCRUD = () => {
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .btn-icon:hover {
-          background: rgba(255,255,255,0.1);
+          background: #F3F4F6;
+          color: #111827;
         }
 
         .upload-controls {
@@ -627,21 +733,21 @@ const ProductosCRUD = () => {
           flex-direction: column;
           align-items: flex-start;
           gap: var(--space-3);
-          background: rgba(255, 255, 255, 0.02);
+          background: #FFFFFF;
           padding: var(--space-3);
           border-radius: var(--radius-sm);
-          border: 2px dashed transparent;
+          border: 2px dashed #D1D5DB;
           transition: all 0.3s ease;
         }
 
         .upload-controls.dragging {
-          border-color: #00E5FF;
-          background: rgba(0, 229, 255, 0.1);
+          border-color: #111827;
+          background: rgba(17, 24, 39, 0.05);
         }
 
         .upload-instructions {
           font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.6);
+          color: #6B7280;
           line-height: 1.5;
         }
 
@@ -654,8 +760,8 @@ const ProductosCRUD = () => {
         }
 
         .btn-primary {
-          background: #00E5FF;
-          color: #000;
+          background: #111827;
+          color: #FFFFFF;
           border: none;
           padding: 0 var(--space-4);
           height: 40px;
@@ -672,8 +778,8 @@ const ProductosCRUD = () => {
         }
 
         .btn-primary:hover {
-          background: #fff;
-          box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+          background: #000000;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .btn-primary:disabled {
@@ -707,15 +813,15 @@ const ProductosCRUD = () => {
           max-width: 1200px;
           margin: 0 auto var(--space-4);
           gap: var(--space-2);
-          border-bottom: 1px solid rgba(255,255,255,0.1);
+          border-bottom: 1px solid rgba(0,0,0,0.08);
           padding-bottom: 0;
         }
 
         .tab-btn {
           background: transparent;
           border: none;
-          color: rgba(255, 255, 255, 0.5);
-          font-family: 'Space Grotesk', sans-serif;
+          color: #6B7280;
+          font-family: var(--font-body, 'Space Grotesk', sans-serif);
           font-size: 1.1rem;
           text-transform: uppercase;
           letter-spacing: 1px;
@@ -726,7 +832,7 @@ const ProductosCRUD = () => {
         }
 
         .tab-btn:hover {
-          color: rgba(255, 255, 255, 0.8);
+          color: #111827;
         }
 
         .tab-btn::after {
@@ -741,26 +847,26 @@ const ProductosCRUD = () => {
         }
 
         .tab-btn.active {
-          color: #fff;
+          color: #111827;
           font-weight: 600;
         }
         
         .tab-btn.active.tab-morokko::after {
-          background: #fff;
+          background: #111827;
         }
         
         .tab-btn.active.tab-guster::after {
-          background: #00E5FF;
-          box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+          background: var(--color-guster);
         }
 
         .table-container {
           max-width: 1200px;
           margin: 0 auto;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.05);
+          background: #FFFFFF;
+          border: 1px solid rgba(0,0,0,0.08);
           border-radius: var(--radius-md);
           overflow-x: auto;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
         .products-table {
@@ -774,13 +880,16 @@ const ProductosCRUD = () => {
           font-size: 0.85rem;
           text-transform: uppercase;
           letter-spacing: 1px;
-          color: rgba(255,255,255,0.5);
-          border-bottom: 1px solid rgba(255,255,255,0.1);
+          color: #6B7280;
+          background-color: #F9FAFB;
+          border-bottom: 1px solid rgba(0,0,0,0.04);
         }
 
         .products-table td {
           padding: var(--space-3);
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+          color: #111827;
+        }
           vertical-align: middle;
         }
 
@@ -818,7 +927,7 @@ const ProductosCRUD = () => {
 
         .td-desc {
           font-size: 0.85rem;
-          color: rgba(255,255,255,0.5);
+          color: #6B7280;
         }
 
         .badge {
@@ -827,18 +936,6 @@ const ProductosCRUD = () => {
           font-size: 0.75rem;
           font-weight: 600;
           letter-spacing: 1px;
-        }
-
-        .badge-morokko {
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .badge-guster {
-          background: rgba(0, 229, 255, 0.1);
-          color: #00E5FF;
-          border: 1px solid rgba(0, 229, 255, 0.3);
         }
 
         .td-price {
@@ -854,27 +951,27 @@ const ProductosCRUD = () => {
         .action-btn {
           background: transparent;
           border: none;
-          color: rgba(255,255,255,0.5);
+          color: #9CA3AF;
           cursor: pointer;
           transition: color 0.2s;
           padding: 4px;
         }
 
-        .action-btn.edit:hover { color: #00E5FF; }
-        .action-btn.delete:hover { color: #ff4757; }
+        .action-btn.edit:hover { color: #3B82F6; }
+        .action-btn.delete:hover { color: #EF4444; }
 
         .empty-state, .loading-state {
           text-align: center;
           padding: var(--space-6) !important;
-          color: rgba(255,255,255,0.5);
+          color: #6B7280;
         }
 
         /* Modal Styles */
         .modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0,0,0,0.8);
-          backdrop-filter: blur(5px);
+          background: rgba(0,0,0,0.5);
+          backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -883,14 +980,14 @@ const ProductosCRUD = () => {
         }
 
         .modal-content {
-          background: #1a1a1a;
-          border: 1px solid rgba(255,255,255,0.1);
+          background: #FFFFFF;
+          border: 1px solid rgba(0,0,0,0.08);
           border-radius: var(--radius-md);
           width: 100%;
           max-width: 600px;
           max-height: 90vh;
           overflow-y: auto;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          box-shadow: 0 20px 50px rgba(0,0,0,0.1);
         }
 
         .modal-header {
@@ -898,23 +995,23 @@ const ProductosCRUD = () => {
           justify-content: space-between;
           align-items: center;
           padding: var(--space-4);
-          border-bottom: 1px solid rgba(255,255,255,0.1);
+          border-bottom: 1px solid rgba(0,0,0,0.08);
         }
 
         .modal-header h2 {
           font-size: 1.5rem;
-          font-weight: 500;
+          font-weight: 600;
         }
 
         .close-btn {
           background: transparent;
           border: none;
-          color: rgba(255,255,255,0.5);
+          color: #9CA3AF;
           cursor: pointer;
           transition: color 0.2s;
         }
 
-        .close-btn:hover { color: #fff; }
+        .close-btn:hover { color: #111827; }
 
         .product-form {
           padding: var(--space-4);
@@ -941,31 +1038,32 @@ const ProductosCRUD = () => {
           display: block;
           margin-bottom: var(--space-2);
           font-size: 0.9rem;
-          color: rgba(255,255,255,0.7);
+          color: #4B5563;
           text-transform: uppercase;
           letter-spacing: 1px;
+          font-weight: 600;
         }
 
         .form-group input, 
         .form-group select, 
         .form-group textarea {
           width: 100%;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: #fff;
-          padding: var(--space-2) var(--space-3);
-          border-radius: var(--radius-sm);
+          padding: 12px 16px;
+          background-color: #FFFFFF;
+          border: 1px solid #D1D5DB;
+          border-radius: var(--radius-md);
+          color: #111827;
           font-family: inherit;
           font-size: 1rem;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .form-group input:focus, 
         .form-group select:focus, 
         .form-group textarea:focus {
           outline: none;
-          border-color: #00E5FF;
-          background: rgba(255,255,255,0.08);
+          border-color: #111827;
+          box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
         }
 
         /* Image Upload Styles specific for Multiple Gallery */
@@ -973,14 +1071,26 @@ const ProductosCRUD = () => {
           display: flex;
           flex-direction: column;
           gap: var(--space-4);
-          background: rgba(0,0,0,0.2);
+          background: #F9FAFB;
           padding: var(--space-3);
           border-radius: var(--radius-sm);
-          border: 1px dashed rgba(255,255,255,0.1);
+          border: 1px dashed #D1D5DB;
         }
 
         .full-width-controls {
            width: 100%;
+           border: 2px dashed #D1D5DB;
+           border-radius: var(--radius-md);
+           padding: var(--space-4);
+           text-align: center;
+           background: #FFFFFF;
+           color: #6B7280;
+           transition: all 0.2s;
+        }
+        
+        .full-width-controls.dragging {
+            border-color: #111827;
+            background: rgba(17, 24, 39, 0.05);
         }
 
         .gallery-preview-grid {
@@ -995,7 +1105,7 @@ const ProductosCRUD = () => {
           height: 6px;
         }
         .gallery-preview-grid::-webkit-scrollbar-thumb {
-          background: rgba(0, 229, 255, 0.3);
+          background: #D1D5DB;
           border-radius: 3px;
         }
 
@@ -1005,9 +1115,10 @@ const ProductosCRUD = () => {
            display: flex;
            flex-direction: column;
            align-items: center;
-           color: rgba(255,255,255,0.3);
-           border: 1px dashed rgba(255,255,255,0.1);
+           color: #9CA3AF;
+           border: 1px dashed #D1D5DB;
            border-radius: var(--radius-sm);
+           background: #F3F4F6;
         }
 
         .gallery-item-wrapper {
@@ -1016,15 +1127,19 @@ const ProductosCRUD = () => {
            flex-shrink: 0;
            display: flex;
            flex-direction: column;
+           background: #FFFFFF;
+           border: 1px solid #E5E7EB;
+           padding: 6px;
+           border-radius: var(--radius-sm);
            gap: 4px;
         }
 
         .gallery-badge {
            position: absolute;
-           top: -8px;
-           left: -8px;
-           background: #00E5FF;
-           color: #000;
+           top: 0px;
+           left: 0px;
+           background: rgba(17, 24, 39, 0.8);
+           color: #FFF;
            font-size: 0.6rem;
            font-weight: 700;
            padding: 2px 6px;
@@ -1033,34 +1148,36 @@ const ProductosCRUD = () => {
         }
 
         .gallery-image {
-           width: 120px;
+           width: 100%;
            height: 120px;
-           border-radius: var(--radius-sm);
+           border-radius: 4px;
            overflow: hidden;
            position: relative;
-           border: 1px solid rgba(255,255,255,0.1);
+           background: #F3F4F6;
         }
 
         .gallery-image img {
            width: 100%;
            height: 100%;
-           object-fit: cover;
+           object-fit: contain;
         }
 
         .btn-remove-img {
            position: absolute;
            top: 4px;
            right: 4px;
-           background: rgba(0,0,0,0.7);
+           background: #FFFFFF;
            border: none;
-           color: #ff4757;
+           color: #EF4444;
            cursor: pointer;
            border-radius: 50%;
-           padding: 2px;
+           width: 24px;
+           height: 24px;
            display: flex;
            align-items: center;
            justify-content: center;
            transition: transform 0.2s;
+           box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .btn-remove-img:hover {
            transform: scale(1.1);
@@ -1069,21 +1186,27 @@ const ProductosCRUD = () => {
         .gallery-controls {
            display: flex;
            justify-content: space-between;
-           background: rgba(255,255,255,0.05);
+           background: #F3F4F6;
            border-radius: 4px;
            overflow: hidden;
+           border: 1px solid #E5E7EB;
         }
 
         .gallery-controls button {
            flex: 1;
            background: transparent;
            border: none;
-           color: white;
+           color: #4B5563;
            padding: 4px 0;
            cursor: pointer;
            transition: background 0.2s;
            display: flex;
            justify-content: center;
+        }
+        
+        .gallery-controls button:hover:not(:disabled) {
+            background: #E5E7EB;
+            color: #111827;
         }
 
         .gallery-controls button:hover:not(:disabled) {
@@ -1099,6 +1222,48 @@ const ProductosCRUD = () => {
            color: #2ed573;
            text-align: center;
            font-family: monospace;
+        }
+
+        .admin-pagination {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 24px;
+          background: #FFFFFF;
+          border-top: 1px solid rgba(0,0,0,0.08);
+          margin-top: auto;
+        }
+
+        div.admin-pagination button.pagination-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: #FFFFFF;
+          border: 1px solid #D1D5DB;
+          padding: 8px 16px;
+          border-radius: var(--radius-md);
+          font-weight: 600;
+          color: #374151;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: var(--font-body, 'Space Grotesk', sans-serif);
+        }
+
+        div.admin-pagination button.pagination-btn:hover:not(:disabled) {
+          background: #F3F4F6;
+          color: #111827;
+          border-color: #9CA3AF;
+        }
+
+        div.admin-pagination button.pagination-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        div.admin-pagination span.pagination-info {
+          font-weight: 500;
+          color: #6B7280;
+          font-size: 0.95rem;
         }
 
         .modal-footer {

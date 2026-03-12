@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import InstagramSection from '../components/ui/InstagramSection';
 
 // Variante de la página: The Ink Eclipse (Círculo negro expansivo + Reveal cascada y zoom down)
 const eclipseVariants = {
@@ -69,6 +70,26 @@ const Guster = () => {
 
         fetchProducts();
     }, [setSpecificTheme]);
+
+    // Extraer hasta 4 imágenes reales para la vista previa de Instagram
+    const previewImages = products
+        .map(product => {
+            let coverImg = product.imagen_url;
+            try {
+                const parsed = JSON.parse(product.imagen_url);
+                if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+            } catch (e) {}
+            return coverImg;
+        })
+        .filter(url => url) // Quitar los que no tengan imagen
+        .slice(0, 4);
+
+    const gusterInstaPosts = [
+        "https://www.instagram.com/reel/DO6w2GzkUEz/?igsh=N3N6ODRoZzB3Nzc4",
+        "https://www.instagram.com/p/DLh1ejIOBti/?igsh=MWp2OXBlY2oxNXdyNA==",
+        "https://www.instagram.com/p/CECKSvSj6rA/?igsh=dGFxcDc1aXVmbDE2",
+        "https://www.instagram.com/p/C-Fs-Q1uUX1/?igsh=MWxsbm82ZnB1bWI0dw=="
+    ];
 
     return (
         <motion.div
@@ -141,6 +162,14 @@ const Guster = () => {
                     )}
                 </motion.div>
             </div>
+
+            <InstagramSection 
+                handle="guster_fashion" 
+                link="https://www.instagram.com/guster_fashion?igsh=cjdncnhsMHZsZWEz" 
+                theme="light" 
+                previewImages={previewImages}
+                postLinks={gusterInstaPosts}
+            />
 
             <style>{`
         .guster-page {

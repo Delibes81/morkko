@@ -19,10 +19,18 @@ const Footer = () => {
             <div className="container footer-content">
                 <div className="footer-top">
                     <div className="footer-brand">
-                        <div className="brand-logos">
-                            <span className="brand-primary">Morokko</span>
-                            <span className="brand-divider">/</span>
-                            <span className="brand-secondary">Guster</span>
+                        <div className="brand-logos" style={{ display: 'flex' }}>
+                            <img 
+                                src="/MG_LOGO_LARGO.png" 
+                                alt="Morokko y Guster" 
+                                style={{ 
+                                    height: '60px', 
+                                    objectFit: 'contain',
+                                    filter: isDark ? 'invert(1)' : 'none',
+                                    transition: 'filter 0.8s',
+                                    marginBottom: 'var(--space-2)'
+                                }} 
+                            />
                         </div>
                         <p className="brand-desc">
                             Dos marcas, una sola actitud. Explora nuestras colecciones lifestyle y streetwear.
@@ -44,27 +52,20 @@ const Footer = () => {
                     <div className="footer-column">
                         <h4>Soporte</h4>
                         <ul>
-                            <li><Link to="/">Preguntas Frecuentes</Link></li>
-                            <li><Link to="/">Envíos y Entregas</Link></li>
-                            <li><Link to="/">Cambios y Devoluciones</Link></li>
-                            <li><Link to="/">Contacto</Link></li>
+                            <li><Link to="/soporte/faq">Preguntas Frecuentes</Link></li>
+                            <li><Link to="/soporte/envios">Envíos y Entregas</Link></li>
+                            <li><Link to="/soporte/devoluciones">Cambios y Devoluciones</Link></li>
+                            <li><Link to="/soporte/contacto">Contacto</Link></li>
                         </ul>
                     </div>
                     <div className="footer-column">
                         <h4>Legal</h4>
                         <ul>
-                            <li><Link to="/">Términos de Servicio</Link></li>
-                            <li><Link to="/">Política de Privacidad</Link></li>
+                            <li><Link to="/legal/terminos">Términos de Servicio</Link></li>
+                            <li><Link to="/legal/privacidad">Política de Privacidad</Link></li>
                         </ul>
                     </div>
-                    <div className="footer-column social-column">
-                        <h4>Síguenos</h4>
-                        <div className="social-icons">
-                            <a href="#" aria-label="Instagram"><Instagram size={20} /></a>
-                            <a href="#" aria-label="Facebook"><Facebook size={20} /></a>
-                            <a href="#" aria-label="Twitter"><Twitter size={20} /></a>
-                        </div>
-                    </div>
+
                 </div>
 
                 <div className="footer-bottom">

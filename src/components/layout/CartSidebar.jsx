@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
@@ -12,6 +13,7 @@ const CartSidebar = () => {
         updateQuantity, 
         totalPrice 
     } = useCart();
+    const navigate = useNavigate();
 
     // Prevent body scroll when cart is open
     useEffect(() => {
@@ -116,7 +118,10 @@ const CartSidebar = () => {
                                     <span>Subtotal</span>
                                     <span>${totalPrice.toFixed(2)} MXN</span>
                                 </div>
-                                <button className="checkout-btn">
+                                <button className="checkout-btn" onClick={() => {
+                                    closeCart();
+                                    navigate('/checkout');
+                                }}>
                                     Pagar Ahora <ArrowRight size={18} />
                                 </button>
                             </div>

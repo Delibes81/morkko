@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import InstagramSection from '../components/ui/InstagramSection';
 
 // Variante de la página: The Canvas Dawn (Barrido desde abajo + subida escalada)
 const dawnVariants = {
@@ -69,6 +70,26 @@ const Morokko = () => {
 
         fetchProducts();
     }, [setSpecificTheme]);
+
+    // Extraer hasta 4 imágenes reales para la vista previa de Instagram
+    const previewImages = products
+        .map(product => {
+            let coverImg = product.imagen_url;
+            try {
+                const parsed = JSON.parse(product.imagen_url);
+                if (Array.isArray(parsed) && parsed.length > 0) coverImg = parsed[0];
+            } catch (e) {}
+            return coverImg;
+        })
+        .filter(url => url) // Quitar los que no tengan imagen
+        .slice(0, 4);
+
+    const morokkoInstaPosts = [
+        "https://www.instagram.com/reel/DHcQAKMuuKX/?igsh=Nmp6ZnhidTlmMXF0",
+        "https://www.instagram.com/p/CKMy-u7jsIg/?igsh=c3ZreHdweGhjZXZ2",
+        "https://www.instagram.com/p/B3qmAuojsB8/?igsh=MTdkNG5ubmF2dnQzaQ==",
+        "https://www.instagram.com/p/DLqDWgLuj4p/?igsh=OGU1bmxqeDYxeTM0"
+    ];
 
     return (
         <motion.div
@@ -141,6 +162,14 @@ const Morokko = () => {
                     )}
                 </motion.div>
             </div>
+
+            <InstagramSection 
+                handle="camisas.morokko" 
+                link="https://www.instagram.com/camisas.morokko?igsh=MXNtZjcxNXN0Yzcxcw==" 
+                theme="light" 
+                previewImages={previewImages}
+                postLinks={morokkoInstaPosts}
+            />
 
             <style>{`
         .morokko-page {
