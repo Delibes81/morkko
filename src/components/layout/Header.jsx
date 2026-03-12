@@ -31,8 +31,17 @@ const Header = () => {
         </nav>
 
         <div className="header-logo">
-          <Link to="/" style={{ fontWeight: 700, fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
-            Morokko
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img 
+              src="/MG_LOGO_LARGO.png" 
+              alt="Morokko y Guster" 
+              style={{ 
+                height: '28px', 
+                objectFit: 'contain',
+                filter: isDark ? 'invert(1)' : 'none',
+                transition: 'filter 0.8s'
+              }} 
+            />
           </Link>
         </div>
 

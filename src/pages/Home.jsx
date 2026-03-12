@@ -429,16 +429,16 @@ const Home = () => {
             aspect-ratio: 3/4;
             border-radius: var(--radius-md);
             overflow: hidden;
-            background-color: #FFFFFF;
+            background-color: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .guster-image-border {
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: var(--radius-none);
-            background-color: #222;
+            border: none;
+            border-radius: var(--radius-md);
+            background-color: transparent;
         }
 
         .dynamic-product-img {
@@ -446,7 +446,7 @@ const Home = () => {
             inset: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: cover;
             transition: transform 0.8s ease;
         }
         
@@ -460,9 +460,9 @@ const Home = () => {
             border: 1px solid rgba(0,0,0,0.1);
         }
         .guster-placeholder {
-            background-color: #222;
-            color: #00E5FF;
-            border: 1px solid rgba(0, 229, 255, 0.2);
+            background-color: transparent;
+            color: #222;
+            border: none;
             border-radius: var(--radius-none);
         }
 
