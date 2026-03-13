@@ -218,7 +218,11 @@ const Checkout = () => {
         // En producción, esto apuntaría a un archivo serverless de Supabase o Vercel
         const fetchPaymentIntent = async () => {
             try {
-                const response = await fetch('http://localhost:4242/create-payment-intent', {
+                const apiUrl = import.meta.env.DEV 
+                    ? 'http://localhost:4242/create-payment-intent' 
+                    : '/api/create-payment-intent';
+                
+                const response = await fetch(apiUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ amount: total })
