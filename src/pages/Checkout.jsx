@@ -99,7 +99,8 @@ const CheckoutForm = ({ clientSecret, amount, cartItems }) => {
                     product_name: item.name,
                     quantity: item.quantity,
                     price: item.price,
-                    brand: item.brand
+                    brand: item.brand,
+                    size: item.size || null
                 }));
 
                 const { error: itemsError } = await supabase
@@ -289,6 +290,7 @@ const Checkout = () => {
                                 <div className="summary-details">
                                     <h4>{item.name}</h4>
                                     <p className="brand-tag">{item.brand}</p>
+                                    {item.size && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Talla: {item.size}</p>}
                                     <p>Cant: {item.quantity}</p>
                                 </div>
                                 <div className="summary-price">

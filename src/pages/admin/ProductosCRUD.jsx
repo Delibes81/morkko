@@ -29,7 +29,8 @@ const ProductosCRUD = () => {
     descripcion: '',
     precio: '',
     marca: 'morokko',
-    imagen_url: '' // Will store JSON string behind the scenes
+    imagen_url: '',
+    tallas: []
   });
 
   // Image Upload State (Array of objects: { id, preview, blob, originalSize, optimizedSize, existingUrl? })
@@ -76,7 +77,8 @@ const ProductosCRUD = () => {
         descripcion: product.descripcion || '',
         precio: product.precio || '',
         marca: product.marca || activeTab,
-        imagen_url: product.imagen_url || ''
+        imagen_url: product.imagen_url || '',
+        tallas: product.tallas ? (typeof product.tallas === 'string' ? JSON.parse(product.tallas) : product.tallas) : []
       });
       
       // Parse existing JSON image array or convert single old string to array
@@ -106,7 +108,8 @@ const ProductosCRUD = () => {
         descripcion: '',
         precio: '',
         marca: activeTab, // Automatically assign the active tab brand
-        imagen_url: ''
+        imagen_url: '',
+        tallas: []
       });
     }
     setIsModalOpen(true);
@@ -121,6 +124,17 @@ const ProductosCRUD = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSizeChange = (size) => {
+    setFormData(prev => {
+      const isSelected = prev.tallas.includes(size);
+      if (isSelected) {
+        return { ...prev, tallas: prev.tallas.filter(s => s !== size) };
+      } else {
+        return { ...prev, tallas: [...prev.tallas, size] };
+      }
+    });
   };
 
   // Optimize Image directly inside the browser using Canvas
@@ -287,7 +301,8 @@ const ProductosCRUD = () => {
         descripcion: formData.descripcion,
         precio: parseFloat(formData.precio),
         marca: formData.marca,
-        imagen_url: finalUrls.length > 0 ? jsonUrls : ''
+        imagen_url: finalUrls.length > 0 ? jsonUrls : '',
+        tallas: formData.tallas
       };
 
       if (currentProduct) {
@@ -541,6 +556,23 @@ const ProductosCRUD = () => {
                     />
                   </div>
                   {/* Marca select is removed, assigned implicitly by activeTab */}
+                </div>
+
+                <div className="form-group">
+                  <label>Tallas Disponibles</label>
+                  <div className="sizes-grid">
+                    {['S', 'M', 'L', 'XL'].map(size => (
+                      <label key={size} className="size-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={formData.tallas.includes(size)}
+                          onChange={() => handleSizeChange(size)}
+                        />
+                        <span className="checkbox-box"></span>
+                        <span className="size-label">{size}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -1064,6 +1096,57 @@ const ProductosCRUD = () => {
           outline: none;
           border-color: #111827;
           box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.1);
+        }
+
+        .sizes-grid {
+          display: flex;
+          gap: var(--space-3);
+          margin-top: 8px;
+        }
+
+        .size-checkbox {
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .size-checkbox input {
+          display: none;
+        }
+
+        .checkbox-box {
+          width: 20px;
+          height: 20px;
+          border: 1px solid #D1D5DB;
+          border-radius: 4px;
+          display: inline-block;
+          position: relative;
+          transition: all 0.2s;
+        }
+
+        .size-checkbox input:checked + .checkbox-box {
+          background-color: #111827;
+          border-color: #111827;
+        }
+
+        .size-checkbox input:checked + .checkbox-box::after {
+          content: '✓';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: white;
+          font-size: 12px;
+        }
+
+        .size-label {
+          font-weight: 600;
+          color: #4B5563;
+        }
+        
+        .size-checkbox input:checked ~ .size-label {
+          color: #111827;
         }
 
         /* Image Upload Styles specific for Multiple Gallery */

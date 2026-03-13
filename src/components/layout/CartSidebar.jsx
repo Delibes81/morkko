@@ -84,20 +84,22 @@ const CartSidebar = () => {
                                                     <h3>{item.name}</h3>
                                                     <button 
                                                         className="remove-item-btn" 
-                                                        onClick={() => removeFromCart(item.id)}
+                                                        onClick={() => removeFromCart(item.cartItemId)}
                                                         title="Eliminar"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>
                                                 
+                                                {item.size && <div className="cart-item-size">Talla: {item.size}</div>}
+                                                
                                                 <div className="cart-item-footer">
                                                     <div className="quantity-controls">
-                                                        <button onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                                                        <button onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}>
                                                             <Minus size={14} />
                                                         </button>
                                                         <span>{item.quantity}</span>
-                                                        <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                                                        <button onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}>
                                                             <Plus size={14} />
                                                         </button>
                                                     </div>
@@ -289,6 +291,13 @@ const CartSidebar = () => {
                             font-weight: 500;
                             line-height: 1.3;
                             padding-right: var(--space-2);
+                        }
+
+                        .cart-item-size {
+                            font-size: 0.85rem;
+                            color: rgba(255,255,255,0.6);
+                            margin-top: -4px;
+                            margin-bottom: 8px;
                         }
 
                         .remove-item-btn {

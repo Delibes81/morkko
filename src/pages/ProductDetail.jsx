@@ -18,6 +18,7 @@ const ProductDetail = () => {
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [isAdded, setIsAdded] = useState(false);
+    const [selectedSize, setSelectedSize] = useState('');
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -60,16 +61,24 @@ const ProductDetail = () => {
     const handleAddToCart = () => {
         if (!product) return;
         
+        const availableSizes = product.tallas ? (typeof product.tallas === 'string' ? JSON.parse(product.tallas) : product.tallas) : [];
+        if (availableSizes.length > 0 && !selectedSize) {
+           alert("Por favor selecciona una talla antes de agregar a la bolsa.");
+           return;
+        }
+
         // Use the first image for the cart
         const cartImg = images.length > 0 ? images[0] : null;
 
         for(let i=0; i<quantity; i++) {
            addToCart({
               id: product.id,
+              cartItemId: product.id + '-' + (selectedSize || 'none'),
               name: product.nombre,
               price: product.precio,
               image: cartImg,
-              brand: product.marca
+              brand: product.marca,
+              size: selectedSize
            });
         }
         
@@ -182,6 +191,24 @@ const ProductDetail = () => {
                             <p>{product.descripcion}</p>
                         </div>
 
+                        {product.tallas && (typeof product.tallas === 'string' ? JSON.parse(product.tallas) : product.tallas).length > 0 && (
+                            <div className="size-selector">
+                                <h3>SELECCIONA TU TALLA</h3>
+                                <div className="sizes-grid">
+                                    {(typeof product.tallas === 'string' ? JSON.parse(product.tallas) : product.tallas).map(size => (
+                                        <button 
+                                            key={size}
+                                            className={`size-btn ${selectedSize === size ? 'active' : ''}`}
+                                            onClick={() => setSelectedSize(size)}
+                                            title={`Talla ${size}`}
+                                        >
+                                            {size}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="purchase-actions">
                             <div className="quantity-selector">
                                 <button onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</button>
@@ -194,7 +221,7 @@ const ProductDetail = () => {
                                 onClick={handleAddToCart}
                             >
                                 <ShoppingBag size={20} />
-                                {isAdded ? '¡Agregado!' : 'Añadir a la bolsa'}
+                                {isAdded ? 'Añadido' : 'Añadir a la bolsa'}
                             </button>
                         </div>
                         
@@ -407,10 +434,55 @@ const ProductDetail = () => {
                     border-bottom: 1px solid var(--border-color);
                 }
 
+                .size-selector {
+                    margin-bottom: var(--space-4);
+                }
+
+                .size-selector h3 {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    margin-bottom: var(--space-3);
+                    text-transform: uppercase;
+                    letter-spacing: 1.5px;
+                }
+
+                .sizes-grid {
+                    display: flex;
+                    gap: var(--space-2);
+                    flex-wrap: wrap;
+                }
+
+                .size-btn {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 4px; /* Square shape */
+                    border: 1px solid var(--border-color);
+                    background: transparent;
+                    color: var(--text-color);
+                    font-size: 1.1rem;
+                    font-weight: 400; /* Lighter font weight to match screenshot */
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .size-btn:hover {
+                    border-color: var(--text-color);
+                }
+
+                .size-btn.active {
+                    background: var(--text-color);
+                    color: var(--bg-color);
+                    border-color: var(--text-color);
+                }
+
                 .purchase-actions {
                     display: flex;
                     gap: var(--space-3);
                     margin-bottom: var(--space-6);
+                    align-items: center; /* Ensure horizontal alignment */
                 }
 
                 .quantity-selector {
@@ -437,7 +509,7 @@ const ProductDetail = () => {
                 }
 
                 .add-to-bag-btn {
-                    flex: 1;
+                    flex: 1; /* Take up remaining space */
                     height: 60px;
                     border-radius: 50px;
                     border: none;
